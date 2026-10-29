@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "author": "Anonymous maker",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-arduino-uno",
+      "id": "uno",
+      "top": -108.6,
+      "left": 49.4,
+      "rotate": 90,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-ntc-temperature-sensor",
+      "id": "ntc1",
+      "top": 50.6,
+      "left": -87,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 61.55,
+      "left": 412.8,
+      "attrs": { "value": "150" }
+    },
+    {
+      "type": "wokwi-dht22",
+      "id": "dht1",
+      "top": -54.6,
+      "left": 344.7,
+      "rotate": 90,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "bz1",
+      "top": 54.9,
+      "left": 321.3,
+      "rotate": 90,
+      "attrs": { "volume": "0.1" }
+    },
+    {
+      "type": "wokwi-pir-motion-sensor",
+      "id": "pir1",
+      "top": 172.8,
+      "left": 194.78,
+      "rotate": 180,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": 15.6,
+      "left": 465,
+      "attrs": { "color": "red", "flip": "1" }
+    }
+  ],
+  "connections": [
+    [ "ntc1:OUT", "uno:A0", "green", [ "h19.2", "v-28.9" ] ],
+    [ "ntc1:VCC", "uno:5V", "red", [ "h9.6", "v-57.6" ] ],
+    [ "ntc1:GND", "uno:GND.2", "black", [ "h0", "v-48" ] ],
+    [ "bz1:2", "uno:4", "green", [ "h-19.2", "v-19.6" ] ],
+    [ "bz1:1", "uno:GND.1", "green", [ "h-19.2", "v-115.2" ] ],
+    [ "dht1:VCC", "uno:5V", "red", [ "h0", "v-153.6", "h-249.6", "v163.2" ] ],
+    [ "dht1:GND", "uno:GND.1", "black", [ "h-19.2", "v-48" ] ],
+    [ "dht1:SDA", "uno:2", "green", [ "h-9.6", "v76.9" ] ],
+    [ "pir1:GND", "uno:GND.3", "black", [ "v-19.2", "h-153.34", "v-115.2" ] ],
+    [ "pir1:OUT", "uno:3", "green", [ "v-38.4", "h48.14", "v-48" ] ],
+    [ "pir1:VCC", "uno:5V", "red", [ "v-19.2", "h-163.2", "v0", "h-19.2", "v-134.4" ] ],
+    [ "uno:5", "r1:1", "green", [ "h0" ] ],
+    [ "r1:2", "led1:A", "green", [ "v0" ] ],
+    [ "led1:C", "uno:GND.1", "green", [ "v9.6", "h18.8", "v-96" ] ]
+  ],
+  "dependencies": {}
+}
