@@ -1,0 +1,172 @@
+[
+    {
+        "id": "d745a204dc3ec165",
+        "type": "tab",
+        "label": "Поток 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "c4babcface9b2e31",
+        "type": "watch",
+        "z": "d745a204dc3ec165",
+        "name": "следить за data/log.txt",
+        "files": "   C:\\Users\\10240799\\Gubatova1\\data\\log.txt",
+        "recursive": "",
+        "x": 100,
+        "y": 200,
+        "wires": [
+            [
+                "f53ec1b0789bd7d0"
+            ]
+        ]
+    },
+    {
+        "id": "88fea684516d9889",
+        "type": "inject",
+        "z": "d745a204dc3ec165",
+        "name": "ручной ввод",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 330,
+        "y": 140,
+        "wires": [
+            [
+                "f53ec1b0789bd7d0"
+            ]
+        ]
+    },
+    {
+        "id": "f53ec1b0789bd7d0",
+        "type": "file in",
+        "z": "d745a204dc3ec165",
+        "name": "читать data/log.txt",
+        "filename": "data/log.txt",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 550,
+        "y": 200,
+        "wires": [
+            [
+                "6375d4299e4e76e7"
+            ]
+        ]
+    },
+    {
+        "id": "6375d4299e4e76e7",
+        "type": "function",
+        "z": "d745a204dc3ec165",
+        "name": "log",
+        "func": "const T = 2; \nconst RANGES = {\n    s1: [0, 50],\n    s2: [0, 100],\n    s3: [0, 1]\n};\nconst text = String(msg.payload).replace(/^\\uFEFF/, ''); // Убираем BOM если есть\nconst sql = [];\ntext.split(/\\r?\\n/).forEach(raw => {\n    const line = raw.trim();\n    if (!line) return;\n    const parts = line.split(' ');\n    const kind = parts[0];\n    const f = {};\n    parts.slice(1).forEach(p => {\n        const kv = p.split('=');\n        if (kv.length === 2) {\n            f[kv[0]] = kv[1];\n        }\n    });\n    const n = parseInt(f.n);\n    if (isNaN(n)) return;\n    const t_s = n * T;\n    if (kind === 'DATA') {\n        ['s1', 's2', 's3'].forEach(s => {\n            const v = parseFloat(f[s]);\n            if (!isNaN(v)) {\n                sql.push(`INSERT INTO readings(n,t_s,sensor,value) VALUES(${n},${t_s},'${s}',${v});`);\n            }\n            const [min, max] = RANGES[s];\n            if (isNaN(v) || v < min || v > max) {\n                const safeMsg = `датчик ${s} вне диапазона [${min};${max}]`.replace(/'/g, \"''\");\n                sql.push(`INSERT INTO events(n,t_s,type,message) VALUES(${n},${t_s},'FAULT','${safeMsg}');`);\n            }\n        });\n    } \n    else if (kind === 'EVENT') {\n        const type = f.type || 'UNKNOWN';\n        let message = '';\n        if (type === 'THRESHOLD') {\n            message = 'влажность > 70%';\n        } else if (type === 'NORMAL') {\n            message = 'влажность в норме';\n        } else {\n            message = 'событие контроллера';\n        }\n        const safeMsg = message.replace(/'/g, \"''\");\n        sql.push(`INSERT INTO events(n,t_s,type,message) VALUES(${n},${t_s},'${type}','${safeMsg}');`);\n    }\n});\nconst head = \n    'BEGIN;\\n' +\n    'DELETE FROM readings;\\n' +\n    'DELETE FROM events;\\n' +\n    \"DELETE FROM sqlite_sequence WHERE name IN ('readings','events');\\n\";\nreturn [null, { payload: head + sql.join('\\n') + '\\nCOMMIT;\\n' }];\nreturn msg;",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 200,
+        "wires": [
+            [],
+            [
+                "e0559b56c6fcb507"
+            ]
+        ]
+    },
+    {
+        "id": "e0559b56c6fcb507",
+        "type": "file",
+        "z": "d745a204dc3ec165",
+        "name": "запись",
+        "filename": "db/load.sql",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": true,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 880,
+        "y": 200,
+        "wires": [
+            [
+                "7cc91a9910b1c6a6"
+            ]
+        ]
+    },
+    {
+        "id": "7cc91a9910b1c6a6",
+        "type": "exec",
+        "z": "d745a204dc3ec165",
+        "command": "sqlite3 db/variant.db \".read db/schema.sql\" \".read db/load.sql\"",
+        "addpay": "",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "загрузить sql",
+        "x": 1080,
+        "y": 200,
+        "wires": [
+            [
+                "7bceca3de262ff7c"
+            ],
+            [
+                "5e8d0dd356d66b46"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "7bceca3de262ff7c",
+        "type": "debug",
+        "z": "d745a204dc3ec165",
+        "name": "ответ sqlite",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1250,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "5e8d0dd356d66b46",
+        "type": "debug",
+        "z": "d745a204dc3ec165",
+        "name": "ошибки sqlite",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1260,
+        "y": 260,
+        "wires": []
+    }
+]
