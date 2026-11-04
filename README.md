@@ -29,7 +29,6 @@
 
 ## 📂 Структура репозитория
 
-```text
 Gubatova1/
 ├── README.md              # Настоящий файл
 ├── start-nodered.bat      # Запуск Node-RED из корня проекта
